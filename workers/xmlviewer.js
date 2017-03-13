@@ -86,8 +86,8 @@ XMLViewer.prototype = {
         break;
       case 4: //CDATA_SECTION_NODE, content of node
         parsed += '<span colapse-marker="true" class="' + this.cssPrefix +
-          '"><iron-icon more icon="expand-more" class="' + this.cssPrefix + '"></iron-icon>' +
-          '<iron-icon less icon="expand-less" class="' + this.cssPrefix + '"></iron-icon></span>';
+          '"><iron-icon more icon="arc:expand-more" class="' + this.cssPrefix + '"></iron-icon>' +
+          '<iron-icon less icon="arc:expand-less" class="' + this.cssPrefix + '"></iron-icon></span>';
         parsed += '<span class="' + this.cssPrefix + 'cdata">&lt;![CDATA[</span>';
         parsed += '<div collapsible class="' + this.cssPrefix + '">';
         // parsed += this.urlify(SafeHtmlUtils.htmlEscape(node.nodeValue));
