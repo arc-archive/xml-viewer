@@ -19,12 +19,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <script src="../../iron-test-helpers/mock-interactions.js"></script>
 
     <link rel="import" href="../xml-viewer.html">
+    <link rel="import" href="../../fetch-polyfill/fetch-polyfill.html">
+
   </head>
   <body>
 
     <test-fixture id="basic">
       <template>
-        <xml-viewer></xml-viewer>
+        <xml-viewer whole-match></xml-viewer>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="ca">
+      <template>
+        <xml-viewer>
+          <paper-icon-button content-action></paper-icon-button>
+        </xml-viewer>
       </template>
     </test-fixture>
 
@@ -34,6 +44,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       var xml;
       var element;
       var output;
+
       suiteSetup(function(done) {
         fetch('test.xml')
         .then(function(response) {
@@ -44,6 +55,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           done();
         });
       });
+
       setup(function(done) {
         element = fixture('basic');
         element.xml = xml;
@@ -57,9 +69,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       });
 
-      test('Should have parsed HTML', function() {
+      test('Should parse HTML', function() {
         var html = output.innerHTML;
         assert.isString(html);
+      });
+    });
+
+    suite('content actions', function() {
+      var element;
+      setup(function() {
+        element = fixture('ca');
+      });
+      test('Should have distributed nodes', function() {
+        var buttons = element.queryAllEffectiveChildren('paper-icon-button');
+        assert.equal(buttons.length, 1);
       });
     });
     </script>
