@@ -206,6 +206,7 @@ Custom property | Description | Default
       @apply(--layout-center);
       @apply(--response-highlighter-action-bar);
     }
+
     .actions-panel.hidden {
       display: none;
     }
@@ -327,6 +328,16 @@ Custom property | Description | Default
         query: {
           type: String,
           observer: '_queryChanged'
+        },
+        /**
+         * A location of this script as a base URL for it's assets in the
+         * `workers` folder.
+         */
+        importLocation: {
+          type: String,
+          value: function() {
+            return importLocation;
+          }
         }
       },
 
@@ -353,7 +364,7 @@ Custom property | Description | Default
         this.$.output.innerText = '';
 
         if (!this._worker) {
-          var worker = new Worker(importLocation + '/workers/xmlviewer.js');
+          var worker = new Worker(this.importLocation + '/workers/xmlviewer.js');
           worker.addEventListener('message', this._workerDataHandler);
           worker.addEventListener('error', this._workerErrorHandler);
           this._worker = worker;
