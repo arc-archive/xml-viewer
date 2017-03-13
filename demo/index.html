@@ -38,11 +38,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <h3>The `xml-viewer`</h3>
     <demo-snippet>
       <template is="dom-bind">
-        <paper-input class="query" label="Search in XML" value="{{query}}"></paper-input>
-        <xml-viewer xml="[[xml]]" query="[[query]]" whole-match on-action-link-change="_onLinkChange"></xml-viewer>
+        <xml-viewer xml="[[xml]]" query="[[query]]" whole-match on-action-link-change="_onLinkChange">
+          <paper-icon-button content-action title="Additional action" icon="arc:cached" on-tap="_additionalAction"></paper-icon-button>
+          <paper-icon-button content-action title="Clear the code" icon="arc:clear" on-tap="_additionalAction"></paper-icon-button>
+          <paper-input content-action class="query" label="Search in XML" value="{{query}}"></paper-input>
+        </xml-viewer>
       </template>
     </demo-snippet>
     <paper-toast></paper-toast>
+    <paper-toast id="additionalAction" text="Additional action clicked"></paper-toast>
     <script>
     var scope = document.querySelector('template[is="dom-bind"]');
     var xml = '';
@@ -63,6 +67,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       var toast = document.querySelector('paper-toast');
       toast.text = 'Selected URL: ' + e.detail.url;
       toast.opened = true;
+    };
+    scope._additionalAction = function() {
+      document.querySelector('#additionalAction').opened = true;
     };
     </script>
   </div>
