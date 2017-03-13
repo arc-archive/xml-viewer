@@ -200,7 +200,19 @@ Custom property | Description | Default
     .arc-search-mark.selected {
       background-color: #ff9632;
     }
+
+    .actions-panel {
+      @apply(--layout-horizontal);
+      @apply(--layout-center);
+      @apply(--response-highlighter-action-bar);
+    }
+    .actions-panel.hidden {
+      display: none;
+    }
     </style>
+    <div class$="[[_computeActionsPanelClass(showOutput)]]">
+      <content select="[content-action]"></content>
+    </div>
     <paper-spinner active="[[working]]"></paper-spinner>
     <error-message hidden$="[[!isError]]">
       <p>There was an error parsing XML data</p>
@@ -396,6 +408,15 @@ Custom property | Description | Default
           return;
         }
         this.mark(query);
+      },
+
+      // Computes CSS class for the content actions pane.
+      _computeActionsPanelClass: function(showOutput) {
+        var clazz = 'actions-panel';
+        if (!showOutput) {
+          clazz += ' hidden';
+        }
+        return clazz;
       }
     });
   })();
