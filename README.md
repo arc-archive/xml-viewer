@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/advanced-rest-client/xml-viewer.svg?branch=master)](https://travis-ci.org/advanced-rest-client/xml-viewer)  
+[![Build Status](https://travis-ci.org/advanced-rest-client/xml-viewer.svg?branch=stage)](https://travis-ci.org/advanced-rest-client/xml-viewer)  
 
 # xml-viewer
 
@@ -12,6 +12,19 @@
 *Note** This element uses web workers with dependencies. It expect to find
 workers files in current directory in the `workers` folder.
 Your build process has to ensure that this files will be avaiable.
+
+## Content actions
+By default the user can copy content of the code to clipboard. This action is
+always visible.
+You can add more actions in the actions bar by putting elements as a children
+of this element.
+### Example
+```
+<xml-viewer>
+  <paper-icon-button title="Additional action" icon="arc:cached"></paper-icon-button>
+  <paper-icon-button title="Clear the code" icon="arc:clear"></paper-icon-button>
+</xml-viewer>
+```
 
 ### Styling
 `<xml-viewer>` provides the following custom properties and mixins for styling:
