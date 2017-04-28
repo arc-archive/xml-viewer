@@ -1,3 +1,24 @@
+<a name="0.1.4"></a>
+## [0.1.4](https://github.com/advanced-rest-client/xml-viewer/compare/0.1.2...v0.1.4) (2017-04-28)
+
+
+### Fix
+
+* Added promise polyfill in test for IE ([b145fa93369946a4a71bf249353b4f6c85ac63ce](https://github.com/advanced-rest-client/xml-viewer/commit/b145fa93369946a4a71bf249353b4f6c85ac63ce))
+
+### Update
+
+* Removed linter from Travis test due to pass the test after inlining web workers code into the content of the element ([09a9c3509011f8709350e8f56e59a80c16e35909](https://github.com/advanced-rest-client/xml-viewer/commit/09a9c3509011f8709350e8f56e59a80c16e35909))
+* Replaced external web worker files with worker content included into the element body ([89c6f059813e40ef6d2f38f69277a3bd3879c0b8](https://github.com/advanced-rest-client/xml-viewer/commit/89c6f059813e40ef6d2f38f69277a3bd3879c0b8))
+
+
+
+<a name="0.1.3"></a>
+## [0.1.3](https://github.com/advanced-rest-client/xml-viewer/compare/0.1.2...v0.1.3) (2017-03-13)
+
+
+
+
 <a name="0.1.2"></a>
 ## [0.1.2](https://github.com/advanced-rest-client/xml-viewer/compare/0.1.1...v0.1.2) (2017-03-13)
 
