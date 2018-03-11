@@ -17,38 +17,32 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <title>xml-viewer demo</title>
 
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
-
   <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
   <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
-  <link rel="import" href="../../paper-input/paper-input.html">
+  <link rel="import" href="../../paper-icon-button/paper-icon-button.html">
   <link rel="import" href="../../paper-toast/paper-toast.html">
-
   <link rel="import" href="../xml-viewer.html">
-
-  <style is="custom-style" include="demo-pages-shared-styles">
-
-    .vertical-section-container {
-      max-width: 600px;
-    }
-
-  </style>
+  <custom-style>
+    <style is="custom-style" include="demo-pages-shared-styles">
+    </style>
+  </custom-style>
 </head>
 <body unresolved>
-  <div class="vertical-section-container centered">
-    <h3>The `xml-viewer`</h3>
-    <demo-snippet>
-      <template is="dom-bind">
-        <xml-viewer xml="[[xml]]" query="[[query]]" whole-match on-action-link-change="_onLinkChange">
-          <paper-icon-button content-action title="Additional action" icon="arc:cached" on-tap="_additionalAction"></paper-icon-button>
-          <paper-icon-button content-action title="Clear the code" icon="arc:clear" on-tap="_additionalAction"></paper-icon-button>
-          <paper-input content-action class="query" label="Search in XML" value="{{query}}"></paper-input>
+  <dom-bind id="demo">
+    <template is="dom-bind">
+      <div class="vertical-section-container centered">
+        <h3>The `xml-viewer`</h3>
+        <xml-viewer xml="[[xml]]" on-action-link-change="_onLinkChange">
+          <paper-icon-button slot="content-action" title="Additional action" icon="arc:file-download" on-tap="_additionalAction"></paper-icon-button>
+          <paper-icon-button slot="content-action" title="Clear the code" icon="arc:clear" on-tap="_additionalAction"></paper-icon-button>
         </xml-viewer>
-      </template>
-    </demo-snippet>
+      </div>
+    </template>
+  </dom-bind>
     <paper-toast></paper-toast>
     <paper-toast id="additionalAction" text="Additional action clicked"></paper-toast>
     <script>
-    var scope = document.querySelector('template[is="dom-bind"]');
+    var scope = document.getElementById('demo');
     var xml = '';
     scope.xml = xml;
     var xhr = new XMLHttpRequest();
@@ -72,6 +66,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       document.querySelector('#additionalAction').opened = true;
     };
     </script>
-  </div>
+
 </body>
 </html>

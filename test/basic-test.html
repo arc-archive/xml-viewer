@@ -12,55 +12,48 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
-    <script src="../../iron-test-helpers/test-helpers.js"></script>
-    <script src="../../iron-test-helpers/mock-interactions.js"></script>
-
     <link rel="import" href="../xml-viewer.html">
-    <link rel="import" href="../../fetch-polyfill/fetch-polyfill.html">
-    <link rel="import" href="../../promise-polyfill/promise-polyfill.html">
-
+    <link rel="import" href="../../paper-icon-button/paper-icon-button.html">
   </head>
   <body>
 
     <test-fixture id="basic">
       <template>
-        <xml-viewer whole-match></xml-viewer>
+        <xml-viewer></xml-viewer>
       </template>
     </test-fixture>
 
     <test-fixture id="ca">
       <template>
         <xml-viewer>
-          <paper-icon-button content-action></paper-icon-button>
+          <paper-icon-button slot="content-action"></paper-icon-button>
         </xml-viewer>
       </template>
     </test-fixture>
 
     <script>
-    /* global fixture, assert */
-    suite('basic', function() {
-      var xml;
-      var element;
-      var output;
+    suite('basic', () => {
+      let xml;
+      let element;
 
-      suiteSetup(function(done) {
-        fetch('test.xml')
-        .then(function(response) {
-          return response.text();
-        })
-        .then(function(data) {
-          xml = data;
+      suiteSetup((done) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'test.xml', true);
+        xhr.send();
+        xhr.onload = (e) => {
+          xml = e.target.response;
           done();
-        });
+        };
+        xhr.onerror = () => {
+          done(new Error('Unable to get test xml data'));
+        };
       });
 
-      setup(function(done) {
+      setup((done) => {
         element = fixture('basic');
         element.xml = xml;
-        output = Polymer.dom(element.root).querySelector('#output');
         var finished = false;
         element.addEventListener('working-changed', function(e) {
           if (!e.detail.value && !finished) {
@@ -71,19 +64,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       test('Should parse HTML', function() {
-        var html = output.innerHTML;
+        const output = element.shadowRoot.querySelector('#output');
+        const html = output.innerHTML;
         assert.isString(html);
       });
     });
 
-    suite('content actions', function() {
+    suite('content actions', () => {
       var element;
-      setup(function() {
+      setup(() => {
         element = fixture('ca');
       });
-      test('Should have distributed nodes', function() {
-        var buttons = element.queryAllEffectiveChildren('paper-icon-button');
-        assert.equal(buttons.length, 1);
+      test('Should have distributed nodes', () => {
+        const nodes = element.shadowRoot.querySelector('slot').assignedNodes();
+        assert.equal(nodes.length, 1);
       });
     });
     </script>
