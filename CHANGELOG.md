@@ -1,3 +1,9 @@
+<a name="2.0.3"></a>
+## [2.0.3](https://github.com/advanced-rest-client/xml-viewer/compare/2.0.2...2.0.3) (2018-05-18)
+
+
+
+
 <a name="2.0.2"></a>
 ## [2.0.2](https://github.com/advanced-rest-client/xml-viewer/compare/0.1.4...2.0.2) (2018-03-11)
 
