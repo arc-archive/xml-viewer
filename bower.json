@@ -1,7 +1,7 @@
 {
   "name": "xml-viewer",
   "description": "An XML payload viewer for the XML response",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "license": "Apache-2.0",
   "authors": [
     "The Advanced REST client authors <arc@mulesoft.com>"
@@ -36,7 +36,6 @@
   },
   "ignore": [
     "**/.*",
-    "dependencyci.yml",
     "node_modules",
     "bower_components",
     "test",
