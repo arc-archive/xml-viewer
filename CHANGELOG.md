@@ -1,4 +1,14 @@
 <a name="2.0.3"></a>
+## [2.0.3](https://github.com/advanced-rest-client/xml-viewer/compare/2.0.2...2.0.3) (2018-05-22)
+
+
+### Update
+
+* Bumping patch version ([93acf4f05b701341beea63a6e673be60b752aa02](https://github.com/advanced-rest-client/xml-viewer/commit/93acf4f05b701341beea63a6e673be60b752aa02))
+
+
+
+<a name="2.0.3"></a>
 ## [2.0.3](https://github.com/advanced-rest-client/xml-viewer/compare/2.0.2...2.0.3) (2018-05-18)
 
 
