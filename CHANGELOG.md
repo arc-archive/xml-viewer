@@ -80,3 +80,29 @@
 
 
 
+# [2.1.0](https://github.com/advanced-rest-client/xml-viewer/compare/2.0.2...2.1.0) (2019-02-14)
+
+
+### Docs
+
+* Updating polymer docs and typpings ([ec29d5586db7bcbfb17c57a573be8667df54f11b](https://github.com/advanced-rest-client/xml-viewer/commit/ec29d5586db7bcbfb17c57a573be8667df54f11b))
+
+### Fix
+
+* Adding missing dependencies to travis ([179097921e27e3a772028279f3aa7f673160e130](https://github.com/advanced-rest-client/xml-viewer/commit/179097921e27e3a772028279f3aa7f673160e130))
+* Fixing test command ([3fa52e4f76c4cea62eeecac0d62f870d6b908568](https://github.com/advanced-rest-client/xml-viewer/commit/3fa52e4f76c4cea62eeecac0d62f870d6b908568))
+
+### New
+
+* Adding deprecation message. ([b440932affabf1166554258c42d1440e7abfb4e9](https://github.com/advanced-rest-client/xml-viewer/commit/b440932affabf1166554258c42d1440e7abfb4e9))
+
+### Update
+
+* Bumping patch version ([93acf4f05b701341beea63a6e673be60b752aa02](https://github.com/advanced-rest-client/xml-viewer/commit/93acf4f05b701341beea63a6e673be60b752aa02))
+* Removing old CI files ([ea57a4f5f04363a9624b9c39fc9686a0ba3b93a2](https://github.com/advanced-rest-client/xml-viewer/commit/ea57a4f5f04363a9624b9c39fc9686a0ba3b93a2))
+* The XML is being rendered despite the error. ([f7f074d9aadaf1d37968cf0bcd6290a190e9d326](https://github.com/advanced-rest-client/xml-viewer/commit/f7f074d9aadaf1d37968cf0bcd6290a190e9d326))
+* Updating reset behavior ([a4785f90076e2d2a8e58ec5c9f9aa15558995330](https://github.com/advanced-rest-client/xml-viewer/commit/a4785f90076e2d2a8e58ec5c9f9aa15558995330))
+* Updating tests, adding coverage ([d9c7fbda2ff8437fb0698e376eac9b4c6b4f47c7](https://github.com/advanced-rest-client/xml-viewer/commit/d9c7fbda2ff8437fb0698e376eac9b4c6b4f47c7))
+
+
+
