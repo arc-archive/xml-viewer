@@ -34,27 +34,34 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </test-fixture>
 
     <script>
-    suite('basic', () => {
-      let xml;
-      let element;
-
-      suiteSetup((done) => {
+    function getXml() {
+      return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', 'test.xml', true);
         xhr.send();
         xhr.onload = (e) => {
-          xml = e.target.response;
-          done();
+          resolve(e.target.response);
         };
         xhr.onerror = () => {
-          done(new Error('Unable to get test xml data'));
+          reject(new Error('Unable to get test xml data'));
         };
+      });
+    }
+    suite('basic', () => {
+      let xml;
+      let element;
+
+      suiteSetup(() => {
+        return getXml()
+        .then((data) => {
+          xml = data;
+        });
       });
 
       setup((done) => {
         element = fixture('basic');
         element.xml = xml;
-        var finished = false;
+        let finished = false;
         element.addEventListener('working-changed', function(e) {
           if (!e.detail.value && !finished) {
             finished = true;
@@ -71,13 +78,283 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     });
 
     suite('content actions', () => {
-      var element;
+      let element;
       setup(() => {
         element = fixture('ca');
       });
       test('Should have distributed nodes', () => {
         const nodes = element.shadowRoot.querySelector('slot').assignedNodes();
         assert.equal(nodes.length, 1);
+      });
+    });
+
+    suite('_changed()', () => {
+      let xml;
+      let element;
+
+      suiteSetup(() => {
+        return getXml()
+        .then((data) => {
+          xml = data;
+        });
+      });
+
+      setup(() => {
+        element = fixture('basic');
+      });
+
+      test('Function is called when "xml" property chnage', () => {
+        const spy = sinon.spy(element, '_changed');
+        element.xml = xml;
+        assert.isTrue(spy.called);
+      });
+
+      test('Calls render() with argument', () => {
+        const spy = sinon.spy(element, 'render');
+        element.xml = xml;
+        assert.equal(spy.args[0][0], xml);
+      });
+
+      test('Calls reset() when no XML', () => {
+        const spy = sinon.spy(element, 'reset');
+        element._changed();
+        assert.isTrue(spy.called);
+      });
+    });
+
+    suite('reset()', () => {
+      let element;
+      setup(() => {
+        element = fixture('basic');
+      });
+
+      test('Sets working property', () => {
+        element._setWorking(true);
+        element.reset();
+        assert.isFalse(element.working);
+      });
+
+      test('Sets isError property', () => {
+        element._setIsError(true);
+        element.reset();
+        assert.isFalse(element.isError);
+      });
+
+      test('Clears errorMessage', () => {
+        element._setErrorMessage('test');
+        element.reset();
+        assert.equal(element.errorMessage, null);
+      });
+
+      test('Clears the output', () => {
+        element.$.output.innerText = 'test';
+        element.reset();
+        assert.equal(element.$.output.innerText, '');
+      });
+    });
+
+    suite('render()', () => {
+      let xml;
+      let element;
+
+      suiteSetup(() => {
+        return getXml()
+        .then((data) => {
+          xml = data;
+        });
+      });
+
+      setup(() => {
+        element = fixture('basic');
+      });
+
+      test('Calls reset()', () => {
+        const spy = sinon.spy(element, 'reset');
+        element.render(xml);
+        assert.isTrue(spy.called);
+      });
+
+      test('Sets working property', () => {
+        element.render(xml);
+        assert.isTrue(element.working);
+      });
+
+      test('Calls _ensureWorker()', () => {
+        const spy = sinon.spy(element, '_ensureWorker');
+        element.render(xml);
+        assert.isTrue(spy.called);
+      });
+
+      test('Posts message to the worker', () => {
+        element._ensureWorker();
+        const spy = sinon.spy(element._worker, 'postMessage');
+        element.render(xml);
+        assert.equal(spy.args[0][0].xml, xml);
+        assert.equal(spy.args[0][0].cssPrefix, 'xml-viewer style-scope ');
+      });
+    });
+
+    suite('_ensureWorker()', () => {
+      let element;
+      setup(() => {
+        element = fixture('basic');
+      });
+
+      test('Creates the worker', () => {
+        element._ensureWorker();
+        assert.ok(element._worker);
+      });
+
+      test('Keeps existing worker', () => {
+        const mock = {
+          terminate: () => {},
+          removeEventListener: () => {}
+        };
+        element._worker = mock;
+        element._ensureWorker();
+        assert.deepEqual(element._worker, mock);
+      });
+    });
+
+    suite('_workerData()', () => {
+      let element;
+      setup(() => {
+        element = fixture('basic');
+      });
+
+      test('Sets working property', () => {
+        element._setWorking(true);
+        element._workerData({
+          data: 'test'
+        });
+        assert.isFalse(element.working);
+      });
+
+      test('Renders the data', () => {
+        element._workerData({
+          data: 'test'
+        });
+        assert.equal(element.$.output.innerHTML, 'test');
+      });
+    });
+
+    suite('_workerError()', () => {
+      let element;
+      setup(() => {
+        element = fixture('basic');
+        element._changed = () => {};
+      });
+
+      test('Sets working property', () => {
+        element._setWorking(true);
+        element._workerError({});
+        assert.isFalse(element.working);
+      });
+
+      test('Sets isError property', () => {
+        element._setIsError(false);
+        element._workerError({});
+        assert.isTrue(element.isError);
+      });
+
+      test('Clears error message when not set', () => {
+        element._setErrorMessage('test');
+        element._workerError({});
+        assert.isUndefined(element.errorMessage);
+      });
+
+      test('Sets error message', () => {
+        element._workerError({
+          message: 'test'
+        });
+        assert.equal(element.errorMessage, 'test');
+      });
+
+      test('Sets output to "raw" value', () => {
+        element.xml = 'test';
+        element._workerError({});
+        assert.equal(element.$.output.innerText, 'test');
+      });
+
+      test('Clears output when no "raw" data', () => {
+        element.$.output.innerText = 'test';
+        element._workerError({});
+        assert.equal(element.$.output.innerText, '');
+      });
+    });
+
+    suite('_handleDisplayClick()', () => {
+      let element;
+      setup(() => {
+        element = fixture('basic');
+        element.$.output.innerHTML = `
+        <div class="top">
+          <div class="expansion-not-set">
+            <div class="parent-collapse-marker" colapse-marker="true">
+              <div class="child-collapse-marker"></div>
+            </div>
+          </div>
+
+          <div class="expansion-set-true" data-expanded="true">
+            <div class="parent-collapse-marker-set-true" colapse-marker="true">
+              <div class="child-collapse-marker-set-true"></div>
+            </div>
+          </div>
+
+          <div class="expansion-set-false" data-expanded="false">
+            <div class="parent-collapse-marker-set-false" colapse-marker="true">
+              <div class="child-collapse-marker-set-false"></div>
+            </div>
+          </div>
+        </div>
+        `;
+      });
+
+      test('Does nothing when no target', () => {
+        element._handleDisplayClick({});
+        // no error
+      });
+
+      test('Toggles unset from child', () => {
+        const node = element.$.output.querySelector('.child-collapse-marker');
+        node.click();
+        const target = element.$.output.querySelector('.expansion-not-set');
+        assert.equal(target.dataset.expanded, 'false');
+      });
+
+      test('Toggles unset from parent', () => {
+        const node = element.$.output.querySelector('.parent-collapse-marker');
+        node.click();
+        const target = element.$.output.querySelector('.expansion-not-set');
+        assert.equal(target.dataset.expanded, 'false');
+      });
+
+      test('Toggles set to "true" from child', () => {
+        const node = element.$.output.querySelector('.child-collapse-marker-set-true');
+        node.click();
+        const target = element.$.output.querySelector('.expansion-set-true');
+        assert.equal(target.dataset.expanded, 'false');
+      });
+
+      test('Toggles set to "true" from parent', () => {
+        const node = element.$.output.querySelector('.parent-collapse-marker-set-true');
+        node.click();
+        const target = element.$.output.querySelector('.expansion-set-true');
+        assert.equal(target.dataset.expanded, 'false');
+      });
+
+      test('Toggles set to "false" from child', () => {
+        const node = element.$.output.querySelector('.child-collapse-marker-set-false');
+        node.click();
+        const target = element.$.output.querySelector('.expansion-set-false');
+        assert.equal(target.dataset.expanded, 'true');
+      });
+
+      test('Toggles set to "false" from parent', () => {
+        const node = element.$.output.querySelector('.parent-collapse-marker-set-false');
+        node.click();
+        const target = element.$.output.querySelector('.expansion-set-false');
+        assert.equal(target.dataset.expanded, 'true');
       });
     });
     </script>
