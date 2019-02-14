@@ -199,10 +199,11 @@ the License.
       <paper-spinner active="[[working]]"></paper-spinner>
     </div>
     <error-message hidden$="[[!isError]]">
-      <p>There was an error parsing XML data</p>
+      <p>There was an error parsing XML.</p>
       <p>[[errorMessage]]</p>
+      <p>Rendering unprocessed data.</p>
     </error-message>
-    <output id="output" hidden$="[[!showOutput]]" on-tap="_handleDisplayClick"></output>
+    <output id="output" hidden$="[[!showOutput]]" on-click="_handleDisplayClick"></output>
   </template>
   <script>
   /**
@@ -294,7 +295,7 @@ the License.
           type: Boolean,
           readOnly: true,
           value: false,
-          computed: '_computeShowOutput(working, isError, xml)'
+          computed: '_computeShowOutput(working, xml)'
         },
         /**
          * An error message to display.
@@ -322,7 +323,6 @@ the License.
         this._worker.removeEventListener('message', this._workerDataHandler);
         this._worker.removeEventListener('error', this._workerErrorHandler);
         this._worker = undefined;
-        // Created URL via URL.createObjectURL will be cleaned by the browser.
       }
     }
     /**
@@ -355,7 +355,7 @@ the License.
       this.reset();
       this._ensureWorker();
       this._worker.postMessage({
-        xml: xml,
+        xml,
         cssPrefix: this.nodeName.toLowerCase() + ' style-scope '
       });
     }
@@ -390,21 +390,24 @@ the License.
     _workerError(e) {
       this._setIsError(true);
       this._setWorking(false);
-      const err = e.message.replace('Uncaught Error: ', '');
+      const message = e.message || '';
+      const err = message.replace('Uncaught Error: ', '');
       if (err) {
         this._setErrorMessage(err);
+      } else {
+        this._setErrorMessage(undefined);
       }
+      this.$.output.innerText = this.xml || '';
     }
     /**
      * Computes value for `showOutput` property
      *
      * @param {Boolean} working
-     * @param {Boolean} isError
      * @param {String} xml
      * @return {Boolean} `true` if the output can be displayed.
      */
-    _computeShowOutput(working, isError, xml) {
-      return !working && !isError && !!xml;
+    _computeShowOutput(working, xml) {
+      return !working && !!xml;
     }
     /**
      * Handles clicks on the rendered items.
