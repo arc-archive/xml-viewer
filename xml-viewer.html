@@ -191,7 +191,12 @@ the License.
     paper-spinner {
       position: absolute;
     }
+
+    .deprecation {
+      color: #9E9E9E;
+    }
     </style>
+    <p hidden$="[[hideDeprecationMessage]]" class="deprecation">This view is retired and will be replaced around June 2019. <a target="_blank" href="https://restforchrome.blogspot.com/2019/02/deprecation-of-xml-viewer-component.html">Learn more.</a></p>
     <div class$="[[_computeActionsPanelClass(showOutput)]]">
       <slot name="content-action"></slot>
     </div>
@@ -306,6 +311,10 @@ the License.
         },
         // A reference to the web worker object.
         _worker: Object,
+        /**
+         * When set deprecation message won't be rendered.
+         */
+        hideDeprecationMessage: Boolean
       };
     }
     /**
