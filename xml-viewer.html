@@ -320,6 +320,7 @@ the License.
     disconnectedCallback() {
       super.disconnectedCallback();
       if (this._worker) {
+        this._worker.terminate();
         this._worker.removeEventListener('message', this._workerDataHandler);
         this._worker.removeEventListener('error', this._workerErrorHandler);
         this._worker = undefined;
@@ -341,7 +342,7 @@ the License.
      * Resets the state of the component.
      */
     reset() {
-      this._setWorking(true);
+      this._setWorking(false);
       this._setIsError(false);
       this._setErrorMessage(null);
       this.$.output.innerText = '';
@@ -353,6 +354,7 @@ the License.
      */
     render(xml) {
       this.reset();
+      this._setWorking(true);
       this._ensureWorker();
       this._worker.postMessage({
         xml,
