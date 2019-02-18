@@ -371,13 +371,33 @@ the License.
       });
     }
     /**
+     * Evaluates if worker can be created on the given URL
+     *
+     * If the worker's hostname is different from the window's hostname it creates a blob URL
+     * to prevent cross domain restrictions
+     *
+     * @param {String} default worker URL
+     * @return {String} URL
+     */
+    generateWorkerUrl(plainUrl) {
+      const workerHostName = new URL(plainUrl).hostname;
+      const windowHostName = window.location.hostname;
+
+      if (workerHostName === windowHostName) return plainUrl;
+
+      const workerCode = `importScripts('${plainUrl}')`;
+      const blob = new Blob([workerCode], {type : 'application/javascript'});
+      return URL.createObjectURL(blob);
+    }
+
+    /**
      * Creates a worker and references it as `_worker` property.
      */
     _ensureWorker() {
       if (this._worker) {
         return;
       }
-      const url = this.importPath + 'workers/xmlviewer.js';
+      const url = this.generateWorkerUrl(this.importPath + 'workers/xmlviewer.js');
       const worker = new Worker(url);
       worker.addEventListener('message', this._workerData);
       worker.addEventListener('error', this._workerError);
