@@ -205,6 +205,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         assert.ok(element._worker);
       });
 
+      test('Creates the worker in a cross-domain', () => {
+        element.importPath = 'http://cross.domain/'
+        element._ensureWorker();
+        assert.ok(element._worker);
+      });
+
       test('Keeps existing worker', () => {
         const mock = {
           terminate: () => {},
