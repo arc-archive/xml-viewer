@@ -1,18 +1,9 @@
 <!doctype html>
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
 <html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
     <link rel="import" href="../xml-viewer.html">
     <link rel="import" href="../../paper-icon-button/paper-icon-button.html">
@@ -34,10 +25,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </test-fixture>
 
     <script>
-    function getXml() {
+    function getXml(file) {
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', 'test.xml', true);
+        xhr.open('GET', file, true);
         xhr.send();
         xhr.onload = (e) => {
           resolve(e.target.response);
@@ -47,27 +38,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         };
       });
     }
+
     suite('basic', () => {
       let xml;
       let element;
 
       suiteSetup(() => {
-        return getXml()
+        return getXml('../demo/valid.xml')
         .then((data) => {
           xml = data;
         });
       });
 
-      setup((done) => {
+      setup(() => {
         element = fixture('basic');
         element.xml = xml;
-        let finished = false;
-        element.addEventListener('working-changed', function(e) {
-          if (!e.detail.value && !finished) {
-            finished = true;
-            done();
-          }
-        });
       });
 
       test('Should parse HTML', function() {
@@ -93,7 +78,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       let element;
 
       suiteSetup(() => {
-        return getXml()
+        return getXml('../demo/valid.xml')
         .then((data) => {
           xml = data;
         });
@@ -158,7 +143,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       let element;
 
       suiteSetup(() => {
-        return getXml()
+        return getXml('../demo/valid.xml')
         .then((data) => {
           xml = data;
         });
@@ -168,118 +153,50 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         element = fixture('basic');
       });
 
-      test('Calls reset()', () => {
-        const spy = sinon.spy(element, 'reset');
+      test('Calls _processData()', () => {
+        const spy = sinon.spy(element, '_processData');
         element.render(xml);
         assert.isTrue(spy.called);
       });
-
-      test('Sets working property', () => {
-        element.render(xml);
-        assert.isTrue(element.working);
-      });
-
-      test('Calls _ensureWorker()', () => {
-        const spy = sinon.spy(element, '_ensureWorker');
-        element.render(xml);
-        assert.isTrue(spy.called);
-      });
-
-      test('Posts message to the worker', () => {
-        element._ensureWorker();
-        const spy = sinon.spy(element._worker, 'postMessage');
-        element.render(xml);
-        assert.equal(spy.args[0][0].xml, xml);
-        assert.equal(spy.args[0][0].cssPrefix, 'xml-viewer style-scope ');
-      });
     });
 
-    suite('_ensureWorker()', () => {
+    suite('Errored XML', () => {
+      let xml;
       let element;
-      setup(() => {
-        element = fixture('basic');
-      });
 
-      test('Creates the worker', () => {
-        element._ensureWorker();
-        assert.ok(element._worker);
-      });
-
-      test('Keeps existing worker', () => {
-        const mock = {
-          terminate: () => {},
-          removeEventListener: () => {}
-        };
-        element._worker = mock;
-        element._ensureWorker();
-        assert.deepEqual(element._worker, mock);
-      });
-    });
-
-    suite('_workerData()', () => {
-      let element;
-      setup(() => {
-        element = fixture('basic');
-      });
-
-      test('Sets working property', () => {
-        element._setWorking(true);
-        element._workerData({
-          data: 'test'
+      suiteSetup(() => {
+        return getXml('../demo/invalid.xml')
+        .then((data) => {
+          xml = data;
         });
-        assert.isFalse(element.working);
       });
 
-      test('Renders the data', () => {
-        element._workerData({
-          data: 'test'
-        });
-        assert.equal(element.$.output.innerHTML, 'test');
-      });
-    });
-
-    suite('_workerError()', () => {
-      let element;
-      setup(() => {
+      setup((done) => {
         element = fixture('basic');
-        element._changed = () => {};
+        element.xml = xml;
+        flush(() => done());
       });
 
-      test('Sets working property', () => {
-        element._setWorking(true);
-        element._workerError({});
-        assert.isFalse(element.working);
+      test('Renders error message', () => {
+        const error = element.shadowRoot.querySelector('error-message');
+        assert.ok(error);
       });
 
-      test('Sets isError property', () => {
-        element._setIsError(false);
-        element._workerError({});
+      test('Sets isError', () => {
         assert.isTrue(element.isError);
       });
 
-      test('Clears error message when not set', () => {
-        element._setErrorMessage('test');
-        element._workerError({});
-        assert.isUndefined(element.errorMessage);
+      test('Sets working', () => {
+        assert.isFalse(element.working);
       });
 
-      test('Sets error message', () => {
-        element._workerError({
-          message: 'test'
-        });
-        assert.equal(element.errorMessage, 'test');
+      test('Sets errorMessage', () => {
+        assert.typeOf(element.errorMessage, 'string');
       });
 
-      test('Sets output to "raw" value', () => {
-        element.xml = 'test';
-        element._workerError({});
-        assert.equal(element.$.output.innerText, 'test');
-      });
-
-      test('Clears output when no "raw" data', () => {
-        element.$.output.innerText = 'test';
-        element._workerError({});
-        assert.equal(element.$.output.innerText, '');
+      test('Sets output', () => {
+        const txt = element.$.output.innerText.trim();
+        assert.equal(txt.indexOf('<feed xml:base'), 0);
       });
     });
 

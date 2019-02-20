@@ -29,10 +29,6 @@ declare namespace UiElements {
    * <xml-viewer xml="&lt;tag&gt;&lt;/tag&gt;"></xml-viewer>
    * ```
    *
-   * **Note** This element uses web workers with dependencies. It expect to find
-   * workers files in current directory in the `workers` folder.
-   * Your build process has to ensure that this files are avaiable.
-   *
    * ## Content actions
    *
    * You can add action items in the actions bar by adding elements as a children
@@ -95,10 +91,14 @@ declare namespace UiElements {
     readonly errorMessage: string|null|undefined;
 
     /**
-     * A reference to the web worker object.
+     * When set deprecation message won't be rendered.
      */
-    _worker: object|null|undefined;
-    disconnectedCallback(): void;
+    hideDeprecationMessage: boolean|null|undefined;
+
+    /**
+     * Used in generating HTML output to prefix CSS classes for CSS scopes.
+     */
+    cssPrefix: string|null|undefined;
 
     /**
      * Handler for the xml attribute change.
@@ -120,20 +120,11 @@ declare namespace UiElements {
     render(xml: String|null): void;
 
     /**
-     * Creates a worker and references it as `_worker` property.
+     * Handles parsing errors
+     *
+     * @param xml Original XML string
      */
-    _ensureWorker(): void;
-
-    /**
-     * Handler for worker `message` event.
-     * Renders output
-     */
-    _workerData(e: Event|null): void;
-
-    /**
-     * Handles error events from the web worker.
-     */
-    _workerError(e: Event|null): void;
+    _parsingError(e: Error|null, xml: String|null): void;
 
     /**
      * Computes value for `showOutput` property
@@ -152,6 +143,13 @@ declare namespace UiElements {
      * Computes CSS class for the content actions pane.
      */
     _computeActionsPanelClass(showOutput: any): any;
+    _processData(xml: any): any;
+    _getHTML(doc: any): any;
+    _parse(node: any): any;
+    _parseValue(value: any): any;
+    _parseElement(node: any): any;
+    _parseAttributes(node: any): any;
+    _getAttributesString(attr: any): any;
   }
 }
 
