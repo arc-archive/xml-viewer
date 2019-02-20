@@ -1,13 +1,4 @@
 <!doctype html>
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
 <html>
 <head>
   <meta charset="utf-8">
@@ -16,7 +7,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <title>xml-viewer demo</title>
 
-  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
   <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
   <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
   <link rel="import" href="../../paper-icon-button/paper-icon-button.html">
@@ -32,9 +23,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <template is="dom-bind">
       <div class="vertical-section-container centered">
         <h3>The `xml-viewer`</h3>
+        <label for="xmlSelect">Select XML</label>
+        <select id="xmlSelect" on-change="_selectXml">
+          <option value="valid.xml">valid.xml</option>
+          <option value="xml2.xml">xml2.xml</option>
+          <option value="xml3.xml">xml3.xml</option>
+          <option value="xml4.xml">xml4.xml</option>
+          <option value="invalid.xml">invalid.xml</option>
+        </select>
         <xml-viewer xml="[[xml]]" on-action-link-change="_onLinkChange">
-          <paper-icon-button slot="content-action" title="Additional action" icon="arc:file-download" on-tap="_additionalAction"></paper-icon-button>
-          <paper-icon-button slot="content-action" title="Clear the code" icon="arc:clear" on-tap="_additionalAction"></paper-icon-button>
+          <paper-icon-button slot="content-action" title="Additional action" icon="arc:file-download" on-click="_additionalAction"></paper-icon-button>
+          <paper-icon-button slot="content-action" title="Clear the code" icon="arc:clear" on-click="_additionalAction"></paper-icon-button>
         </xml-viewer>
       </div>
     </template>
@@ -42,29 +41,44 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <paper-toast></paper-toast>
     <paper-toast id="additionalAction" text="Additional action clicked"></paper-toast>
     <script>
-    var scope = document.getElementById('demo');
-    var xml = '';
-    scope.xml = xml;
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'https://raw.githubusercontent.com/jarrodek/ChromeRestClient/develop/tasks/test-data/xml1.xml');
-    xhr.withCredentials = false;
-    xhr.send();
-    xhr.addEventListener('load', function(e) {
-      scope.xml = e.target.response;
-    });
-    xhr.addEventListener('error', function() {
-      var toast = document.querySelector('paper-toast');
-      toast.text = 'Unable to load the XML file.';
-      toast.opened = true;
-    });
-    scope._onLinkChange = function(e) {
-      var toast = document.querySelector('paper-toast');
-      toast.text = 'Selected URL: ' + e.detail.url;
-      toast.opened = true;
-    };
-    scope._additionalAction = function() {
-      document.querySelector('#additionalAction').opened = true;
-    };
+    (function(scope) {
+      scope._onLinkChange = function(e) {
+        const toast = document.querySelector('paper-toast');
+        toast.text = 'Selected URL: ' + e.detail.url;
+        toast.opened = true;
+      };
+
+      scope._additionalAction = function() {
+        document.querySelector('#additionalAction').opened = true;
+      };
+
+      scope._selectXml = (e) => {
+        const file = e.target.value;
+        scope._load(file);
+      };
+
+      scope._load = (file) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', file);
+        xhr.withCredentials = false;
+        xhr.send();
+        xhr.addEventListener('load', function(e) {
+          scope.xml = e.target.response;
+        });
+        xhr.addEventListener('error', function() {
+          const toast = document.querySelector('paper-toast');
+          toast.text = 'Unable to load the XML file.';
+          toast.opened = true;
+        });
+      };
+
+      scope._init = function() {
+        const select = document.getElementById('xmlSelect');
+        scope._load(select.value);
+      };
+
+      window.addEventListener('WebComponentsReady', scope._init);
+    })(document.getElementById('demo'));
     </script>
 
 </body>
