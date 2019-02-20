@@ -106,3 +106,8 @@
 
 
 
+## [2.1.1](https://github.com/advanced-rest-client/xml-viewer/compare/2.1.0...2.1.1) (2019-02-20)
+
+
+
+
