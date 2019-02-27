@@ -11,21 +11,39 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations under
 the License.
 */
-/* Icons are set in the web worker. Must be included here. */
-/*
-  FIXME(polymer-modulizer): the above comments were extracted
-  from HTML and may be out of place here. Review them and
-  then delete this comment!
-*/
-import '../../@polymer/polymer/polymer-legacy.js';
-
-import '../../@polymer/paper-spinner/paper-spinner.js';
-import '../../@polymer/iron-icon/iron-icon.js';
-import '../../arc-icons/arc-icons.js';
-import '../../@polymer/iron-flex-layout/iron-flex-layout.js';
-import '../../error-message/error-message.js';
-import { html } from '../../@polymer/polymer/lib/utils/html-tag.js';
-import { PolymerElement } from '../../@polymer/polymer/polymer-element.js';
+import {PolymerElement} from '@polymer/polymer/polymer-element.js';
+import {html} from '@polymer/polymer/lib/utils/html-tag.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/iron-icon/iron-icon.js';
+import '@advanced-rest-client/arc-icons/arc-icons.js';
+import '@polymer/iron-flex-layout/iron-flex-layout.js';
+import '@advanced-rest-client/error-message/error-message.js';
+const SafeHtmlUtils = {
+  AMP_RE: new RegExp(/&/g),
+  GT_RE: new RegExp(/>/g),
+  LT_RE: new RegExp(/</g),
+  SQUOT_RE: new RegExp(/'/g),
+  QUOT_RE: new RegExp(/"/g),
+  htmlEscape: function(s) {
+    if (s.indexOf('&') !== -1) {
+      s = s.replace(SafeHtmlUtils.AMP_RE, '&amp;');
+    }
+    if (s.indexOf('<') !== -1) {
+      s = s.replace(SafeHtmlUtils.LT_RE, '&lt;');
+    }
+    if (s.indexOf('>') !== -1) {
+      s = s.replace(SafeHtmlUtils.GT_RE, '&gt;');
+    }
+    if (s.indexOf('"') !== -1) {
+      s = s.replace(SafeHtmlUtils.QUOT_RE, '&quot;');
+    }
+    if (s.indexOf('\'') !== -1) {
+      s = s.replace(SafeHtmlUtils.SQUOT_RE, '&#39;');
+    }
+    return s;
+  }
+};
 /**
  * `<xml-viewer>` An XML payload viewer for the XML response
  *
@@ -77,10 +95,9 @@ import { PolymerElement } from '../../@polymer/polymer/polymer-element.js';
  * @memberof UiElements
  * @demo demo/index.html
  */
-class XmlViewer extends PolymerElement {
+export class XmlViewer extends PolymerElement {
   static get template() {
-    return html`
-    <style>
+    return html`<style>
     :host {
       display: block;
       color: black;
@@ -167,12 +184,12 @@ class XmlViewer extends PolymerElement {
     }
 
     .inline,
-    .inline>div {
+    .inline > div {
       display: inline-block;
       text-indent: 0px;
     }
 
-    .node.opened>. arrowEmpty {
+    .node.opened > arrowEmpty {
       text-indent: 0;
       font-size: 10px;
       letter-spacing: 0.1em;
@@ -256,25 +273,22 @@ class XmlViewer extends PolymerElement {
       color: #9E9E9E;
     }
     </style>
-    <p hidden\$="[[hideDeprecationMessage]]" class="deprecation">This view is retired and will be replaced around June 2019. <a target="_blank" href="https://restforchrome.blogspot.com/2019/02/deprecation-of-xml-viewer-component.html">Learn more.</a></p>
-    <div class\$="[[_computeActionsPanelClass(showOutput)]]">
+    <p hidden$="[[hideDeprecationMessage]]" class="deprecation">This view is retired and will be replaced around June 2019. <a target="_blank" href="https://restforchrome.blogspot.com/2019/02/deprecation-of-xml-viewer-component.html">Learn more.</a></p>
+    <div class$="[[_computeActionsPanelClass(showOutput)]]">
       <slot name="content-action"></slot>
     </div>
     <div class="spinner">
       <paper-spinner active="[[working]]"></paper-spinner>
     </div>
-    <error-message hidden\$="[[!isError]]">
+    <error-message hidden$="[[!isError]]">
       <p>There was an error parsing XML.</p>
       <p>[[errorMessage]]</p>
       <p>Rendering unprocessed data.</p>
     </error-message>
-    <output id="output" hidden\$="[[!showOutput]]" on-click="_handleDisplayClick"></output>
+    <output id="output" hidden$="[[!showOutput]]" on-click="_handleDisplayClick"></output>
 `;
   }
 
-  static get is() {
-    return 'xml-viewer';
-  }
   static get properties() {
     return {
       /**
@@ -318,31 +332,18 @@ class XmlViewer extends PolymerElement {
         type: String,
         readOnly: true
       },
-      // A reference to the web worker object.
-      _worker: Object,
       /**
        * When set deprecation message won't be rendered.
        */
-      hideDeprecationMessage: Boolean
+      hideDeprecationMessage: Boolean,
+      /**
+       * Used in generating HTML output to prefix CSS classes for CSS scopes.
+       */
+      cssPrefix: {
+        type: String,
+        value: 'xml-viewer style-scope '
+      }
     };
-  }
-  /**
-   * @constructor
-   */
-  constructor() {
-    super();
-    this._workerData = this._workerData.bind(this);
-    this._workerError = this._workerError.bind(this);
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    if (this._worker) {
-      this._worker.terminate();
-      this._worker.removeEventListener('message', this._workerDataHandler);
-      this._worker.removeEventListener('error', this._workerErrorHandler);
-      this._worker = undefined;
-    }
   }
   /**
    * Handler for the xml attribute change.
@@ -373,51 +374,27 @@ class XmlViewer extends PolymerElement {
   render(xml) {
     this.reset();
     this._setWorking(true);
-    this._ensureWorker();
-    this._worker.postMessage({
-      xml,
-      cssPrefix: this.nodeName.toLowerCase() + ' style-scope '
-    });
-  }
-  /**
-   * Creates a worker and references it as `_worker` property.
-   */
-  _ensureWorker() {
-    if (this._worker) {
-      return;
+    try {
+      const data = this._processData(xml);
+      this._setWorking(false);
+      this.$.output.innerHTML = data;
+    } catch (e) {
+      this._parsingError(e, xml);
     }
-    const url = this.importPath + 'workers/xmlviewer.js';
-    const worker = new Worker(url);
-    worker.addEventListener('message', this._workerData);
-    worker.addEventListener('error', this._workerError);
-    this._worker = worker;
   }
   /**
-   * Handler for worker `message` event.
-   * Renders output
+   * Handles parsing errors
    *
-   * @param {Event} e
+   * @param {Error} e
+   * @param {String} xml Original XML string
    */
-  _workerData(e) {
-    this._setWorking(false);
-    this.$.output.innerHTML = e.data;
-  }
-  /**
-   * Handles error events from the web worker.
-   *
-   * @param {Event} e
-   */
-  _workerError(e) {
+  _parsingError(e, xml) {
     this._setIsError(true);
     this._setWorking(false);
-    const message = e.message || '';
+    const message = e.message || 'Invalid XML value.';
     const err = message.replace('Uncaught Error: ', '');
-    if (err) {
-      this._setErrorMessage(err);
-    } else {
-      this._setErrorMessage(undefined);
-    }
-    this.$.output.innerText = this.xml || '';
+    this._setErrorMessage(err);
+    this.$.output.innerText = xml || '';
   }
   /**
    * Computes value for `showOutput` property
@@ -463,5 +440,165 @@ class XmlViewer extends PolymerElement {
     }
     return clazz;
   }
+
+  _processData(xml) {
+    const parser = new DOMParser();
+    const result = parser.parseFromString(xml, 'application/xml');
+    const err = result.querySelector('parsererror');
+    if (err) {
+      const message = err.innerText;
+      throw new Error(message);
+    }
+    return this._getHTML(result);
+  }
+
+  _getHTML(doc) {
+    const nodes = doc.childNodes;
+    const nodesCnt = nodes.length;
+    if (nodesCnt === 0) {
+      return 'no xml';
+    }
+    let result = '<div class="' + this.cssPrefix + 'prettyPrint" data-expanded="true">';
+    for (let i = 0; i < nodesCnt; i++) {
+      result += this._parse(nodes.item(i));
+    }
+    result += '</div>';
+    return result;
+  }
+
+  _parse(node) {
+    const cssPrefix = this.cssPrefix;
+    let parsed = '';
+    let type = node.nodeType;
+    switch (type) {
+      case 1:
+        // ELEMENT_NODE, value null
+        parsed += this._parseElement(node);
+        break;
+      case 3:
+        // TEXT_NODE, content of node
+        let value = node.nodeValue;
+        value = SafeHtmlUtils.htmlEscape(value);
+        if (value === '') {
+          return '';
+        }
+        parsed += this._parseValue(value);
+        break;
+      case 4:
+        // CDATA_SECTION_NODE, content of node
+        parsed += '<span colapse-marker="true" class="' + cssPrefix +
+          '"><iron-icon more icon="arc:expand-more" class="' + cssPrefix + '"></iron-icon>' +
+          '<iron-icon less icon="arc:expand-less" class="' + cssPrefix + '"></iron-icon></span>';
+        parsed += '<span class="' + cssPrefix + 'cdata">&lt;![CDATA[</span>';
+        parsed += '<div collapsible class="' + cssPrefix + '">';
+        // parsed += this._urlify(SafeHtmlUtils.htmlEscape(node.nodeValue));
+        parsed += SafeHtmlUtils.htmlEscape(node.nodeValue);
+        parsed += '</div><span class="' + cssPrefix + 'cdata">]]&gt;</span>';
+        break;
+      case 7:
+        // document declaration
+        parsed += '<div class="' + cssPrefix + 'processing">&lt;?xml ' + node.nodeValue +
+          ' ?&gt;</div>';
+        break;
+      case 8:
+        // COMMENT_NODE, comment text
+        parsed += '<div class="' + cssPrefix + 'comment">&lt;--';
+        parsed += node.nodeValue;
+        parsed += '--&gt</div>';
+        break;
+    }
+    parsed = '<div class="' + cssPrefix + 'node">' + parsed + '</div>';
+    return parsed;
+  }
+
+  _parseValue(value) {
+    value = value.trim();
+    let css = 'value';
+    if (!isNaN(value)) {
+      css += ' number';
+    } else if (value === 'true' || value === 'false') {
+      css += ' boolean';
+    } else if (value === 'null') {
+      css += ' null';
+    }
+    value = '<span class="' + this.cssPrefix + css + '">' + value + '</span>';
+    return value;
+  }
+
+  _parseElement(node) {
+    const cssPrefix = this.cssPrefix;
+    const childrenCount = node.childNodes.length;
+    let parsed = '';
+    let showArrows = false;
+
+    if (childrenCount > 1) {
+      parsed += '<span colapse-marker="true" class="' + cssPrefix +
+        '"><iron-icon more icon="arc:expand-more" class="' + cssPrefix + '"></iron-icon>' +
+        '<iron-icon less icon="arc:expand-less" class="' + cssPrefix + '"></iron-icon></span>';
+      showArrows = true;
+    }
+    parsed += '<span class="' + cssPrefix + 'punctuation">&lt;</span>';
+    parsed += '<span class="' + cssPrefix + 'tagname">' + node.nodeName + '</span>';
+    parsed += this._parseAttributes(node);
+    if (childrenCount > 0) {
+      const children = node.childNodes;
+      parsed += '<span class="' + cssPrefix + 'punctuation">&gt;</span>';
+
+      let showInline = false;
+      if (childrenCount === 1 && children.item(0).nodeType === 3) {
+        // simple: only one child - text - show response inline.
+        showInline = true;
+      }
+      if (showInline) {
+        parsed += '<div class="' + cssPrefix + 'inline">';
+      } else {
+        parsed += '<div collapse-indicator colapse-marker="true" class="' + cssPrefix +
+          'collapseIndicator">...</div>';
+        parsed += '<div collapsible class="' + cssPrefix + 'nodeMargin">';
+      }
+      for (let i = 0; i < childrenCount; i++) {
+        parsed += this._parse(children.item(i));
+      }
+
+      parsed += '</div>';
+
+      if (showArrows) {
+        parsed += '<span arrowEmpty class="' + cssPrefix + 'arrowEmpty">&nbsp;</span>';
+      }
+      parsed += '<span class="' + cssPrefix + 'punctuation end">&lt;/</span>';
+      parsed += '<span class="' + cssPrefix + 'tagname end">' + node.nodeName + '</span>';
+      parsed += '<span class="' + cssPrefix + 'punctuation">&gt;</span>';
+    } else {
+      parsed += '<span class="' + cssPrefix + 'punctuation"> /&gt;</span>';
+    }
+    return parsed;
+  }
+
+  _parseAttributes(node) {
+    let parsed = '';
+    const attr = node.attributes;
+    if (attr !== null && attr.length > 0) {
+      for (let i = 0; i < attr.length; i++) {
+        parsed += ' ' + this._getAttributesString(attr.item(i));
+      }
+    }
+    return parsed;
+  }
+
+  _getAttributesString(attr) {
+    const cssPrefix = this.cssPrefix;
+    let data = '<span class="' + cssPrefix + 'attname">';
+    let name = attr.name;
+    name = SafeHtmlUtils.htmlEscape(name);
+    data += name;
+    data += '</span>';
+    data += '<span class="' + cssPrefix + 'punctuation">=</span>';
+    data += '<span class="' + cssPrefix + 'attribute">&quot;';
+    let value = attr.value;
+    value = SafeHtmlUtils.htmlEscape(value);
+    data += value;
+    data += '&quot;</span>';
+    return data;
+  }
 }
-window.customElements.define(XmlViewer.is, XmlViewer);
+window.customElements.define('xml-viewer', XmlViewer);

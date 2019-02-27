@@ -5,19 +5,18 @@
  *   https://github.com/Polymer/tools/tree/master/packages/gen-typescript-declarations
  *
  * To modify these typings, edit the source file(s):
- *   xml-viewer.html
+ *   xml-viewer.js
  */
 
 
 // tslint:disable:variable-name Describing an API that's defined elsewhere.
 // tslint:disable:no-any describes the API as best we are able today
 
-/// <reference path="../polymer/types/polymer.d.ts" />
-/// <reference path="../paper-spinner/paper-spinner.d.ts" />
-/// <reference path="../iron-icon/iron-icon.d.ts" />
-/// <reference path="../arc-icons/arc-icons.d.ts" />
-/// <reference path="../iron-flex-layout/iron-flex-layout.d.ts" />
-/// <reference path="../error-message/error-message.d.ts" />
+import {PolymerElement} from '@polymer/polymer/polymer-element.js';
+
+import {html} from '@polymer/polymer/lib/utils/html-tag.js';
+
+export {XmlViewer};
 
 declare namespace UiElements {
 
@@ -28,6 +27,10 @@ declare namespace UiElements {
    * ```
    * <xml-viewer xml="&lt;tag&gt;&lt;/tag&gt;"></xml-viewer>
    * ```
+   *
+   * **Note** This element uses web workers with dependencies. It expect to find
+   * workers files in current directory in the `workers` folder.
+   * Your build process has to ensure that this files are avaiable.
    *
    * ## Content actions
    *
@@ -63,7 +66,7 @@ declare namespace UiElements {
    * `--xml-viewer-document-declaration-color` | XML document declaration (header) color. | `#999`
    * `--xml-viewer-constant-color` | Constant (boolean, null, number) color. | `#283593`
    */
-  class XmlViewer extends Polymer.Element {
+  class XmlViewer extends PolymerElement {
 
     /**
      * XML data to parse and display
@@ -153,6 +156,9 @@ declare namespace UiElements {
   }
 }
 
-interface HTMLElementTagNameMap {
-  "xml-viewer": UiElements.XmlViewer;
+declare global {
+
+  interface HTMLElementTagNameMap {
+    "xml-viewer": UiElements.XmlViewer;
+  }
 }
