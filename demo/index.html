@@ -16,56 +16,89 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <title>xml-viewer demo</title>
 
-  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
-  <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
-  <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
-  <link rel="import" href="../../paper-icon-button/paper-icon-button.html">
-  <link rel="import" href="../../paper-toast/paper-toast.html">
-  <link rel="import" href="../xml-viewer.html">
-  <custom-style>
+  <script src="../../../@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
+  <script type="module" src="../../../@polymer/iron-demo-helpers/demo-pages-shared-styles.js"></script>
+  <script type="module" src="../../../@polymer/iron-demo-helpers/demo-snippet.js"></script>
+  <script type="module" src="../../../@polymer/paper-icon-button/paper-icon-button.js"></script>
+  <script type="module" src="../../../@polymer/paper-toast/paper-toast.js"></script>
+  <script type="module" src="../xml-viewer.js"></script>
+  <!-- FIXME(polymer-modulizer):
+        These imperative modules that innerHTML your HTML are
+        a hacky way to be sure that any mixins in included style
+        modules are ready before any elements that reference them are
+        instantiated, otherwise the CSS @apply mixin polyfill won't be
+        able to expand the underlying CSS custom properties.
+        See: https://github.com/Polymer/polymer-modulizer/issues/154
+        -->
+    <script type="module">
+const $_documentContainer = document.createElement('template');
+
+$_documentContainer.innerHTML = `<custom-style>
     <style is="custom-style" include="demo-pages-shared-styles">
     </style>
-  </custom-style>
+  </custom-style>`;
+
+document.body.appendChild($_documentContainer.content);
+</script>
 </head>
 <body unresolved>
-  <dom-bind id="demo">
+  <script type="module">
+const $_documentContainer = document.createElement('template');
+
+$_documentContainer.innerHTML = `<dom-bind id="demo">
     <template is="dom-bind">
       <div class="vertical-section-container centered">
-        <h3>The `xml-viewer`</h3>
+        <h3>The \`xml-viewer\`</h3>
         <xml-viewer xml="[[xml]]" on-action-link-change="_onLinkChange">
           <paper-icon-button slot="content-action" title="Additional action" icon="arc:file-download" on-tap="_additionalAction"></paper-icon-button>
           <paper-icon-button slot="content-action" title="Clear the code" icon="arc:clear" on-tap="_additionalAction"></paper-icon-button>
         </xml-viewer>
       </div>
     </template>
-  </dom-bind>
-    <paper-toast></paper-toast>
-    <paper-toast id="additionalAction" text="Additional action clicked"></paper-toast>
-    <script>
-    var scope = document.getElementById('demo');
-    var xml = '';
-    scope.xml = xml;
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'https://raw.githubusercontent.com/jarrodek/ChromeRestClient/develop/tasks/test-data/xml1.xml');
-    xhr.withCredentials = false;
-    xhr.send();
-    xhr.addEventListener('load', function(e) {
-      scope.xml = e.target.response;
-    });
-    xhr.addEventListener('error', function() {
-      var toast = document.querySelector('paper-toast');
-      toast.text = 'Unable to load the XML file.';
-      toast.opened = true;
-    });
-    scope._onLinkChange = function(e) {
-      var toast = document.querySelector('paper-toast');
-      toast.text = 'Selected URL: ' + e.detail.url;
-      toast.opened = true;
-    };
-    scope._additionalAction = function() {
-      document.querySelector('#additionalAction').opened = true;
-    };
-    </script>
+  </dom-bind>`;
+
+document.body.appendChild($_documentContainer.content);
+</script>
+    <script type="module">
+const $_documentContainer = document.createElement('template');
+$_documentContainer.innerHTML = `<paper-toast></paper-toast>`;
+document.body.appendChild($_documentContainer.content);
+</script>
+    <script type="module">
+const $_documentContainer = document.createElement('template');
+$_documentContainer.innerHTML = `<paper-toast id="additionalAction" text="Additional action clicked"></paper-toast>`;
+document.body.appendChild($_documentContainer.content);
+</script>
+    <script type="module">
+import '../../../@polymer/iron-demo-helpers/demo-pages-shared-styles.js';
+import '../../../@polymer/iron-demo-helpers/demo-snippet.js';
+import '../../../@polymer/paper-icon-button/paper-icon-button.js';
+import '../../../@polymer/paper-toast/paper-toast.js';
+import '../xml-viewer.js';
+var scope = document.getElementById('demo');
+var xml = '';
+scope.xml = xml;
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'https://raw.githubusercontent.com/jarrodek/ChromeRestClient/develop/tasks/test-data/xml1.xml');
+xhr.withCredentials = false;
+xhr.send();
+xhr.addEventListener('load', function(e) {
+  scope.xml = e.target.response;
+});
+xhr.addEventListener('error', function() {
+  var toast = document.querySelector('paper-toast');
+  toast.text = 'Unable to load the XML file.';
+  toast.opened = true;
+});
+scope._onLinkChange = function(e) {
+  var toast = document.querySelector('paper-toast');
+  toast.text = 'Selected URL: ' + e.detail.url;
+  toast.opened = true;
+};
+scope._additionalAction = function() {
+  document.querySelector('#additionalAction').opened = true;
+};
+</script>
 
 </body>
 </html>

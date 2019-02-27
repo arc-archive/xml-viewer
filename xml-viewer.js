@@ -1,0 +1,467 @@
+/**
+@license
+Copyright 2016 The Advanced REST client authors <arc@mulesoft.com>
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this file except in compliance with the License. You may obtain a copy of
+the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations under
+the License.
+*/
+/* Icons are set in the web worker. Must be included here. */
+/*
+  FIXME(polymer-modulizer): the above comments were extracted
+  from HTML and may be out of place here. Review them and
+  then delete this comment!
+*/
+import '../../@polymer/polymer/polymer-legacy.js';
+
+import '../../@polymer/paper-spinner/paper-spinner.js';
+import '../../@polymer/iron-icon/iron-icon.js';
+import '../../arc-icons/arc-icons.js';
+import '../../@polymer/iron-flex-layout/iron-flex-layout.js';
+import '../../error-message/error-message.js';
+import { html } from '../../@polymer/polymer/lib/utils/html-tag.js';
+import { PolymerElement } from '../../@polymer/polymer/polymer-element.js';
+/**
+ * `<xml-viewer>` An XML payload viewer for the XML response
+ *
+ * ### Example
+ * ```
+ * <xml-viewer xml="&lt;tag&gt;&lt;/tag&gt;"></xml-viewer>
+ * ```
+ *
+ * **Note** This element uses web workers with dependencies. It expect to find
+ * workers files in current directory in the `workers` folder.
+ * Your build process has to ensure that this files are avaiable.
+ *
+ * ## Content actions
+ *
+ * You can add action items in the actions bar by adding elements as a children
+ * of this element with slot set to `content-action`.
+ *
+ * ### Example
+ * ```
+ * <xml-viewer>
+ *  <paper-icon-button title="Additional action" icon="arc:cached" slot="content-action"></paper-icon-button>
+ *  <paper-icon-button title="Clear the code" icon="arc:clear" slot="content-action"></paper-icon-button>
+ * </xml-viewer>
+ * ```
+ *
+ * ## Changes in version 2
+ *
+ * - The element doesn't mixin text search behavior. This service is deprecated.
+ * - It uses worker files instead of compiled worker data in elements body
+ *
+ * ### Styling
+ *
+ * `<xml-viewer>` provides the following custom properties and mixins for styling:
+ *
+ * Custom property | Description | Default
+ * ----------------|-------------|----------
+ * `--xml-viewer` | Mixin applied to the element | `{}`
+ * `--xml-viewer-comment-color` | Color of the comment section. | `#236E25`
+ * `--xml-viewer-punctuation-color` | Color of the punctuation signs | `black`
+ * `--xml-viewer-tag-name-color` | Color of the XML tag name | `#881280`
+ * `--xml-viewer-attribute-name-color` | Color of the XML attribute. | `#994500`
+ * `--xml-viewer-attribute-value-color` | Color of the attribute's value. | `#1A1AA6`
+ * `--xml-viewer-cdata-color` | CDATA section color. | `#48A`
+ * `--xml-viewer-document-declaration-color` | XML document declaration (header) color. | `#999`
+ * `--xml-viewer-constant-color` | Constant (boolean, null, number) color. | `#283593`
+ *
+ * @customElement
+ * @polymer
+ * @memberof UiElements
+ * @demo demo/index.html
+ */
+class XmlViewer extends PolymerElement {
+  static get template() {
+    return html`
+    <style>
+    :host {
+      display: block;
+      color: black;
+      cursor: text;
+      -webkit-user-select: text;
+      user-select: text;
+      overflow: auto;
+      word-wrap: break-word;
+      @apply --xml-viewer;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .material-icons {
+      font-family: 'Material Icons';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      /* Preferred icon size */
+      display: inline-block;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .prettyPrint {
+      font-family: monospace;
+      font-size: 15px;
+    }
+
+    .arrowEmpty {}
+
+    .node {
+      margin: 1px 0px;
+    }
+
+    .opened {}
+
+    .comment {
+      color: var(--xml-viewer-comment-color, #236E25);
+    }
+
+    .punctuation {
+      color: var(--xml-viewer-punctuation-color, black);
+    }
+
+    .tagname {
+      color: var(--xml-viewer-tag-name-color, #881280);
+    }
+
+    .attname {
+      color: var(--xml-viewer-attribute-name-color, #994500);
+    }
+
+    .attribute {
+      color: var(--xml-viewer-attribute-value-color, #1A1AA6);
+    }
+
+    .cdata {
+      color: var(--xml-viewer-cdata-color, #48A);
+    }
+
+    .cdata *[collapsible] {
+      white-space: pre;
+    }
+
+    .arrowExpanded,
+    .arrowEmpty {
+      display: inline-block;
+      width: 24px;
+      height: 18px;
+    }
+
+    .processing {
+      color: var(--xml-viewer-document-declaration-color, #999);
+    }
+
+    .inline,
+    .inline>div {
+      display: inline-block;
+      text-indent: 0px;
+    }
+
+    .node.opened>. arrowEmpty {
+      text-indent: 0;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      width: 21px;
+      margin-left: 3px;
+      margin-right: 3px;
+    }
+
+    .nodeMargin {
+      margin-left: 44px;
+    }
+
+    .collapseIndicator {
+      display: none;
+      margin: 0px 1px;
+      text-indent: 0px;
+    }
+
+    *[colapse-marker] {
+      -webkit-user-select: none;
+      cursor: pointer;
+    }
+
+    *[less] {
+      display: inline-block;
+    }
+
+    *[more] {
+      display: none;
+    }
+
+    *[data-expanded="false"] .arrowEmpty {
+      display: none;
+    }
+
+    *[data-expanded="false"] *[less] {
+      display: none;
+    }
+
+    *[data-expanded="false"] *[more] {
+      display: inline-block;
+    }
+
+    *[data-expanded="false"] *[collapsible] {
+      display: none !important;
+    }
+
+    *[data-expanded="false"] *[collapse-indicator] {
+      display: inline-block !important;
+    }
+
+    .value.number,
+    .value.null,
+    .value.boolean {
+      color: var(--xml-viewer-constant-color, #283593);
+    }
+
+    .arc-search-mark.selected {
+      background-color: #ff9632;
+    }
+
+    .actions-panel {
+      @apply --layout-horizontal;
+      @apply --layout-center;
+      @apply --response-highlighter-action-bar;
+    }
+
+    .actions-panel.hidden {
+      display: none;
+    }
+
+    .spinner {
+      position: relative;
+    }
+
+    paper-spinner {
+      position: absolute;
+    }
+
+    .deprecation {
+      color: #9E9E9E;
+    }
+    </style>
+    <p hidden\$="[[hideDeprecationMessage]]" class="deprecation">This view is retired and will be replaced around June 2019. <a target="_blank" href="https://restforchrome.blogspot.com/2019/02/deprecation-of-xml-viewer-component.html">Learn more.</a></p>
+    <div class\$="[[_computeActionsPanelClass(showOutput)]]">
+      <slot name="content-action"></slot>
+    </div>
+    <div class="spinner">
+      <paper-spinner active="[[working]]"></paper-spinner>
+    </div>
+    <error-message hidden\$="[[!isError]]">
+      <p>There was an error parsing XML.</p>
+      <p>[[errorMessage]]</p>
+      <p>Rendering unprocessed data.</p>
+    </error-message>
+    <output id="output" hidden\$="[[!showOutput]]" on-click="_handleDisplayClick"></output>
+`;
+  }
+
+  static get is() {
+    return 'xml-viewer';
+  }
+  static get properties() {
+    return {
+      /**
+       * XML data to parse and display
+       */
+      xml: {
+        type: Object,
+        observer: '_changed'
+      },
+      /**
+       * True if error ocurred when parsing data
+       */
+      isError: {
+        type: Boolean,
+        readOnly: true,
+        value: false,
+        notify: true
+      },
+      /**
+       * True when XML is parsing
+       */
+      working: {
+        type: Boolean,
+        readOnly: true,
+        value: false,
+        notify: true
+      },
+      /**
+       * True when output should be shown.
+       */
+      showOutput: {
+        type: Boolean,
+        readOnly: true,
+        value: false,
+        computed: '_computeShowOutput(working, xml)'
+      },
+      /**
+       * An error message to display.
+       */
+      errorMessage: {
+        type: String,
+        readOnly: true
+      },
+      // A reference to the web worker object.
+      _worker: Object,
+      /**
+       * When set deprecation message won't be rendered.
+       */
+      hideDeprecationMessage: Boolean
+    };
+  }
+  /**
+   * @constructor
+   */
+  constructor() {
+    super();
+    this._workerData = this._workerData.bind(this);
+    this._workerError = this._workerError.bind(this);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._worker) {
+      this._worker.terminate();
+      this._worker.removeEventListener('message', this._workerDataHandler);
+      this._worker.removeEventListener('error', this._workerErrorHandler);
+      this._worker = undefined;
+    }
+  }
+  /**
+   * Handler for the xml attribute change.
+   *
+   * @param {String} xml Changed value.
+   */
+  _changed(xml) {
+    if (!xml) {
+      this.reset();
+      return;
+    }
+    this.render(xml);
+  }
+  /**
+   * Resets the state of the component.
+   */
+  reset() {
+    this._setWorking(false);
+    this._setIsError(false);
+    this._setErrorMessage(null);
+    this.$.output.innerText = '';
+  }
+  /**
+   * Parses and renders XML data.
+   *
+   * @param {String} xml XML string to parse and render.
+   */
+  render(xml) {
+    this.reset();
+    this._setWorking(true);
+    this._ensureWorker();
+    this._worker.postMessage({
+      xml,
+      cssPrefix: this.nodeName.toLowerCase() + ' style-scope '
+    });
+  }
+  /**
+   * Creates a worker and references it as `_worker` property.
+   */
+  _ensureWorker() {
+    if (this._worker) {
+      return;
+    }
+    const url = this.importPath + 'workers/xmlviewer.js';
+    const worker = new Worker(url);
+    worker.addEventListener('message', this._workerData);
+    worker.addEventListener('error', this._workerError);
+    this._worker = worker;
+  }
+  /**
+   * Handler for worker `message` event.
+   * Renders output
+   *
+   * @param {Event} e
+   */
+  _workerData(e) {
+    this._setWorking(false);
+    this.$.output.innerHTML = e.data;
+  }
+  /**
+   * Handles error events from the web worker.
+   *
+   * @param {Event} e
+   */
+  _workerError(e) {
+    this._setIsError(true);
+    this._setWorking(false);
+    const message = e.message || '';
+    const err = message.replace('Uncaught Error: ', '');
+    if (err) {
+      this._setErrorMessage(err);
+    } else {
+      this._setErrorMessage(undefined);
+    }
+    this.$.output.innerText = this.xml || '';
+  }
+  /**
+   * Computes value for `showOutput` property
+   *
+   * @param {Boolean} working
+   * @param {String} xml
+   * @return {Boolean} `true` if the output can be displayed.
+   */
+  _computeShowOutput(working, xml) {
+    return !working && !!xml;
+  }
+  /**
+   * Handles clicks on the rendered items.
+   * Provides support for expand / collapse functions.
+   *
+   * @param {Event} e
+   */
+  _handleDisplayClick(e) {
+    if (!e.target) {
+      return;
+    }
+    let target = e.target;
+    if (!target.getAttribute('colapse-marker')) {
+      target = target.parentNode;
+      if (!target || !target.getAttribute('colapse-marker')) {
+        return;
+      }
+    }
+    target = target.parentNode;
+    let expanded = target.dataset.expanded;
+    if (!expanded || expanded === 'true') {
+      target.dataset.expanded = 'false';
+    } else {
+      target.dataset.expanded = 'true';
+    }
+  }
+
+  // Computes CSS class for the content actions pane.
+  _computeActionsPanelClass(showOutput) {
+    let clazz = 'actions-panel';
+    if (!showOutput) {
+      clazz += ' hidden';
+    }
+    return clazz;
+  }
+}
+window.customElements.define(XmlViewer.is, XmlViewer);
