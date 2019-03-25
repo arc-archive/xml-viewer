@@ -11,14 +11,15 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations under
 the License.
 */
-import {PolymerElement} from '@polymer/polymer/polymer-element.js';
-import {html} from '@polymer/polymer/lib/utils/html-tag.js';
-import '@polymer/polymer/polymer-legacy.js';
-import '@polymer/paper-spinner/paper-spinner.js';
-import '@polymer/iron-icon/iron-icon.js';
-import '@advanced-rest-client/arc-icons/arc-icons.js';
-import '@polymer/iron-flex-layout/iron-flex-layout.js';
-import '@advanced-rest-client/error-message/error-message.js';
+import {PolymerElement} from '../../@polymer/polymer/polymer-element.js';
+import {html} from '../../@polymer/polymer/lib/utils/html-tag.js';
+import '../../@polymer/polymer/polymer-legacy.js';
+import '../../@polymer/paper-spinner/paper-spinner.js';
+import '../../@polymer/iron-icon/iron-icon.js';
+import '../../@advanced-rest-client/arc-icons/arc-icons.js';
+import '../../@polymer/iron-flex-layout/iron-flex-layout.js';
+import '../../@advanced-rest-client/error-message/error-message.js';
+
 const SafeHtmlUtils = {
   AMP_RE: new RegExp(/&/g),
   GT_RE: new RegExp(/>/g),
