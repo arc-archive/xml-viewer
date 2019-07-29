@@ -7,76 +7,105 @@
 
   <title>xml-viewer demo</title>
 
-  <script src="../../../@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
-  <script type="module" src="../../../@polymer/iron-demo-helpers/demo-pages-shared-styles.js"></script>
-  <script type="module" src="../../../@polymer/iron-demo-helpers/demo-snippet.js"></script>
-  <script type="module" src="../../../@polymer/paper-icon-button/paper-icon-button.js"></script>
-  <script type="module" src="../../../@polymer/paper-toast/paper-toast.js"></script>
-  <script type="module" src="../xml-viewer.js"></script>
 
-  <custom-style>
-    <style is="custom-style" include="demo-pages-shared-styles">
-    </style>
-  </custom-style>
+  <style>
+    html,
+    body {
+      background-color: #EEEEEE;
+      min-height: 100%;
+    }
+
+    .demo {
+      max-width: 1200px;
+      width: 700px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background-color: #fff;
+      padding: 12px;
+      margin: 20px;
+      box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14),
+                  0 1px 8px 0 rgba(0, 0, 0, 0.12),
+                  0 3px 3px -2px rgba(0, 0, 0, 0.4);
+    }
+
+
+    body.styled {
+      --primary-color: #00A2DF;
+      --arc-font-body1-font-size: 14px;
+      --arc-font-body1-font-weight: 400;
+      --arc-font-body1-line-height: 20px;
+      --arc-font-headline-font-size: 24px;
+      --arc-font-headline-font-weight: 400;
+      --arc-font-headline-letter-spacing: -.012em;
+      --arc-font-headline-line-height: 32px;
+      --arc-font-subhead-font-size: 16px;
+      --arc-font-subhead-font-weight: 400;
+      --arc-font-subhead-line-height: 24px;
+    }
+
+    body.styled.dark {
+      background-color: #424242;
+      height: 100vh;
+      color: #fff;
+      --action-button-background-color: #fff;
+      --action-button-color: var(--primary-color);
+      --secondary-action-button-color: #fff;
+      --primary-color: #2196f3;
+      --primary-text-color: #fff;
+      --paper-toggle-button-label-color: #fff;
+    }
+
+    body.styled.dark .card {
+      background-color: #424242;
+    }
+
+    body.styled request-timings {
+      color: rgba(0, 0, 0, 0.74);
+      -webkit-font-smoothing: antialiased;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 20px;
+    }
+
+    body.styled.dark request-timings,
+    body.styled.dark request-timings-panel {
+      background-color: #424242;
+      color: #fff;
+    }
+  </style>
 </head>
 <body unresolved>
-  <dom-bind id="demo">
-    <template is="dom-bind">
-      <div class="vertical-section-container centered">
-        <h3>The xml-viewer</h3>
+  <div class="vertical-section-container centered card">
+    <h3>The xml-viewer</h3>
 
-        <label for="xmlSelect">Select XML</label>
-        <select id="xmlSelect" on-change="_selectXml">
-          <option value="valid.xml">valid.xml</option>
-          <option value="xml2.xml">xml2.xml</option>
-          <option value="xml3.xml">xml3.xml</option>
-          <option value="xml4.xml">xml4.xml</option>
-          <option value="invalid.xml">invalid.xml</option>
-        </select>
+    <label for="xmlSelect">Select XML</label>
+    <select id="xmlSelect">
+      <option value="valid.xml">valid.xml</option>
+      <option value="xml2.xml">xml2.xml</option>
+      <option value="xml3.xml">xml3.xml</option>
+      <option value="xml4.xml">xml4.xml</option>
+      <option value="invalid.xml">invalid.xml</option>
+    </select>
 
-        <xml-viewer xml="[[xml]]" on-action-link-change="_onLinkChange">
-          <paper-icon-button slot="content-action" title="Additional action" icon="arc:file-download" on-click="_additionalAction"></paper-icon-button>
-          <paper-icon-button slot="content-action" title="Clear the code" icon="arc:clear" on-click="_additionalAction"></paper-icon-button>
-        </xml-viewer>
-      </div>
-    </template>
-  </dom-bind>
+    <xml-viewer id="viewer">
+      <paper-icon-button slot="content-action" title="Additional action" icon="arc:file-download" on-click="_additionalAction"></paper-icon-button>
+      <paper-icon-button slot="content-action" title="Clear the code" icon="arc:clear" on-click="_additionalAction"></paper-icon-button>
+    </xml-viewer>
+  </div>
+
   <paper-toast></paper-toast>
   <paper-toast id="additionalAction" text="Additional action clicked"></paper-toast>
-  <script>
-  (function(scope) {
-    scope._onLinkChange = function(e) {
-      const toast = document.querySelector('paper-toast');
-      toast.text = 'Selected URL: ' + e.detail.url;
-      toast.opened = true;
-    };
-    scope._additionalAction = function() {
-      document.querySelector('#additionalAction').opened = true;
-    };
-    scope._selectXml = (e) => {
-      const file = e.target.value;
-      scope._load(file);
-    };
-    scope._load = (file) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', file);
-      xhr.withCredentials = false;
-      xhr.send();
-      xhr.addEventListener('load', function(e) {
-        scope.xml = e.target.response;
-      });
-      xhr.addEventListener('error', function() {
-        const toast = document.querySelector('paper-toast');
-        toast.text = 'Unable to load the XML file.';
-        toast.opened = true;
-      });
-    };
-    scope._init = function() {
-      const select = document.getElementById('xmlSelect');
-      scope._load(select.value);
-    };
-    window.addEventListener('WebComponentsReady', scope._init);
-  })(document.getElementById('demo'));
-  </script>
+
+  <div class="centered actions card">
+    <h2>Options</h2>
+    <paper-toggle-button id="theme">Toggle dark theme</paper-toggle-button>
+    <paper-toggle-button id="narrow">Toggle narrow attribute</paper-toggle-button>
+    <paper-toggle-button checked id="styled">Toggle styles</paper-toggle-button>
+  </div>
+
+  <script type="module" src="./index.js"></script>
+
 </body>
 </html>

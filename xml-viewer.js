@@ -11,14 +11,11 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations under
 the License.
 */
-import {PolymerElement} from '../../@polymer/polymer/polymer-element.js';
-import {html} from '../../@polymer/polymer/lib/utils/html-tag.js';
-import '../../@polymer/polymer/polymer-legacy.js';
-import '../../@polymer/paper-spinner/paper-spinner.js';
-import '../../@polymer/iron-icon/iron-icon.js';
-import '../../@advanced-rest-client/arc-icons/arc-icons.js';
-import '../../@polymer/iron-flex-layout/iron-flex-layout.js';
-import '../../@advanced-rest-client/error-message/error-message.js';
+import { LitElement, html, css } from 'lit-element';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/iron-icon/iron-icon.js';
+import '@advanced-rest-client/arc-icons/arc-icons.js';
+import '@advanced-rest-client/error-message/error-message.js';
 
 const SafeHtmlUtils = {
   AMP_RE: new RegExp(/&/g),
@@ -96,18 +93,15 @@ const SafeHtmlUtils = {
  * @memberof UiElements
  * @demo demo/index.html
  */
-export class XmlViewer extends PolymerElement {
-  static get template() {
-    return html`<style>
-    :host {
+export class XmlViewer extends LitElement {
+  static get styles() {
+    return css`:host {
       display: block;
       color: black;
       cursor: text;
-      -webkit-user-select: text;
       user-select: text;
       overflow: auto;
       word-wrap: break-word;
-      @apply --xml-viewer;
     }
 
     [hidden] {
@@ -253,9 +247,9 @@ export class XmlViewer extends PolymerElement {
     }
 
     .actions-panel {
-      @apply --layout-horizontal;
-      @apply --layout-center;
-      @apply --response-highlighter-action-bar;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
     }
 
     .actions-panel.hidden {
@@ -272,22 +266,28 @@ export class XmlViewer extends PolymerElement {
 
     .deprecation {
       color: #9E9E9E;
-    }
-    </style>
-    <p hidden$="[[hideDeprecationMessage]]" class="deprecation">This view is retired and will be replaced around June 2019. <a target="_blank" href="https://restforchrome.blogspot.com/2019/02/deprecation-of-xml-viewer-component.html">Learn more.</a></p>
-    <div class$="[[_computeActionsPanelClass(showOutput)]]">
+    }`;
+  }
+
+  render() {
+    const { xml, _working, _isError, errorMessage, hideDeprecationMessage } = this;
+    const showOutput = !_working && !!xml;
+    return html`
+    <p ?hidden="${hideDeprecationMessage}" class="deprecation">
+      This view is retired and will be replaced around June 2019. <a target="_blank" href="https://restforchrome.blogspot.com/2019/02/deprecation-of-xml-viewer-component.html">Learn more.</a>
+    </p>
+    <div class="${this._computeActionsPanelClass(showOutput)}">
       <slot name="content-action"></slot>
     </div>
     <div class="spinner">
-      <paper-spinner active="[[working]]"></paper-spinner>
+      <paper-spinner .active="${_working}"></paper-spinner>
     </div>
-    <error-message hidden$="[[!isError]]">
+    <error-message ?hidden="${!_isError}">
       <p>There was an error parsing XML.</p>
-      <p>[[errorMessage]]</p>
+      <p>${errorMessage}</p>
       <p>Rendering unprocessed data.</p>
     </error-message>
-    <output id="output" hidden$="[[!showOutput]]" on-click="_handleDisplayClick"></output>
-`;
+    <output ?hidden="${!showOutput}" @click="${this._handleDisplayClick}"></output>`;
   }
 
   static get properties() {
@@ -295,57 +295,96 @@ export class XmlViewer extends PolymerElement {
       /**
        * XML data to parse and display
        */
-      xml: {
-        type: Object,
-        observer: '_changed'
-      },
+      xml: { type: Object },
       /**
        * True if error ocurred when parsing data
        */
-      isError: {
-        type: Boolean,
-        readOnly: true,
-        value: false,
-        notify: true
-      },
+      _isError: { type: Boolean },
       /**
        * True when XML is parsing
        */
-      working: {
-        type: Boolean,
-        readOnly: true,
-        value: false,
-        notify: true
-      },
-      /**
-       * True when output should be shown.
-       */
-      showOutput: {
-        type: Boolean,
-        readOnly: true,
-        value: false,
-        computed: '_computeShowOutput(working, xml)'
-      },
+      _working: { type: Boolean },
       /**
        * An error message to display.
        */
-      errorMessage: {
-        type: String,
-        readOnly: true
-      },
+      _errorMessage: { type: String },
       /**
        * When set deprecation message won't be rendered.
        */
-      hideDeprecationMessage: Boolean,
+      hideDeprecationMessage: { type: Boolean },
       /**
        * Used in generating HTML output to prefix CSS classes for CSS scopes.
        */
-      cssPrefix: {
-        type: String,
-        value: 'xml-viewer style-scope '
-      }
+      cssPrefix: { type: String }
     };
   }
+
+  get _output() {
+    return this.shadowRoot.querySelector('output');
+  }
+
+  get xml() {
+    return this._xml;
+  }
+
+  set xml(value) {
+    const old = this._xml;
+    if (old === value) {
+      return;
+    }
+    this._xml = value;
+    this._changed(value);
+  }
+
+  get isError() {
+    return this._isError;
+  }
+
+  get _isError() {
+    return this.__isError;
+  }
+
+  set _isError(value) {
+    const old = this.__isError;
+    if (old === value) {
+      return;
+    }
+    this.__isError = value;
+    this.requestUpdate('_isError', old);
+    this.dispatchEvent(new CustomEvent('iserror-changed', {
+      detail: {
+        value
+      }
+    }));
+  }
+
+  get working() {
+    return this._working;
+  }
+
+  get _working() {
+    return this.___working;
+  }
+
+  set _working(value) {
+    const old = this.___working;
+    if (old === value) {
+      return;
+    }
+    this.___working = value;
+    this.requestUpdate('_working', old);
+    this.dispatchEvent(new CustomEvent('working-changed', {
+      detail: {
+        value
+      }
+    }));
+  }
+
+  constructor() {
+    super();
+    this.cssPrefix = 'xml-viewer style-scope ';
+  }
+
   /**
    * Handler for the xml attribute change.
    *
@@ -356,29 +395,32 @@ export class XmlViewer extends PolymerElement {
       this.reset();
       return;
     }
-    this.render(xml);
+    this._renderXml(xml);
   }
   /**
    * Resets the state of the component.
    */
   reset() {
-    this._setWorking(false);
-    this._setIsError(false);
-    this._setErrorMessage(null);
-    this.$.output.innerText = '';
+    this._working = false;
+    this._isError = false;
+    this._errorMessage = null;
+    const out = this._output;
+    if (out) {
+      this._output.innerText = '';
+    }
   }
   /**
    * Parses and renders XML data.
    *
    * @param {String} xml XML string to parse and render.
    */
-  render(xml) {
+  _renderXml(xml) {
     this.reset();
-    this._setWorking(true);
+    this._working = true;
     try {
       const data = this._processData(xml);
-      this._setWorking(false);
-      this.$.output.innerHTML = data;
+      this._working = false;
+      this._output.innerHTML = data;
     } catch (e) {
       this._parsingError(e, xml);
     }
@@ -390,22 +432,15 @@ export class XmlViewer extends PolymerElement {
    * @param {String} xml Original XML string
    */
   _parsingError(e, xml) {
-    this._setIsError(true);
-    this._setWorking(false);
+    this._isError = true;
+    this._working = false;
     const message = e.message || 'Invalid XML value.';
     const err = message.replace('Uncaught Error: ', '');
-    this._setErrorMessage(err);
-    this.$.output.innerText = xml || '';
-  }
-  /**
-   * Computes value for `showOutput` property
-   *
-   * @param {Boolean} working
-   * @param {String} xml
-   * @return {Boolean} `true` if the output can be displayed.
-   */
-  _computeShowOutput(working, xml) {
-    return !working && !!xml;
+    this._errorMessage = err;
+    const out = this._output;
+    if (out) {
+      this._output.innerText = xml || '';
+    }
   }
   /**
    * Handles clicks on the rendered items.
@@ -425,7 +460,7 @@ export class XmlViewer extends PolymerElement {
       }
     }
     target = target.parentNode;
-    let expanded = target.dataset.expanded;
+    const expanded = target.dataset.expanded;
     if (!expanded || expanded === 'true') {
       target.dataset.expanded = 'false';
     } else {
@@ -470,7 +505,7 @@ export class XmlViewer extends PolymerElement {
   _parse(node) {
     const cssPrefix = this.cssPrefix;
     let parsed = '';
-    let type = node.nodeType;
+    const type = node.nodeType;
     switch (type) {
       case 1:
         // ELEMENT_NODE, value null
@@ -478,12 +513,14 @@ export class XmlViewer extends PolymerElement {
         break;
       case 3:
         // TEXT_NODE, content of node
-        let value = node.nodeValue;
-        value = SafeHtmlUtils.htmlEscape(value);
-        if (value === '') {
-          return '';
+        {
+          let value = node.nodeValue;
+          value = SafeHtmlUtils.htmlEscape(value);
+          if (value === '') {
+            return '';
+          }
+          parsed += this._parseValue(value);
         }
-        parsed += this._parseValue(value);
         break;
       case 4:
         // CDATA_SECTION_NODE, content of node
@@ -602,4 +639,5 @@ export class XmlViewer extends PolymerElement {
     return data;
   }
 }
+/* eslint-disable wc/no-invalid-element-name */
 window.customElements.define('xml-viewer', XmlViewer);
